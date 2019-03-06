@@ -6,11 +6,11 @@ import io
 import termcolor
 import re
 from tqdm import tqdm
-from crawler.youtube_helpers import get_hash, getsize
-from crawler.utils import extract_audio_part_segment
-from crawler.filters import Pipeline, OverlappingSubtitlesRemover, SubtitleCaptionTextFilter, SubtitleMerger,\
+from youtube_helpers import get_hash, getsize
+from utils import extract_audio_part_segment
+from filters import Pipeline, OverlappingSubtitlesRemover, SubtitleCaptionTextFilter, SubtitleMerger,\
     CaptionLengthFilter, CaptionRegexMatcher, CaptionDurationFilter, CaptionLeaveOnlyAlphaNumCharacters, CaptionNormalizer
-from crawler.youtube_helpers import load_all_subtitles
+from youtube_helpers import load_all_subtitles
 
 
 class RESULT:
@@ -37,13 +37,13 @@ if __name__ == "__main__":
 
     subtitle_file = video_file.replace('.mp4', '.en.vtt')
     info_file = video_file.replace('.mp4', '.info.json')
-    overall_info = {"sub_file" : subtitle_file, "info" : info_file}
+    overall_info = {"sub_file": subtitle_file, "info": info_file}
     log_file = open("./log.json", "a+")
 
     result = RESULT.OK
     try:
         if not os.path.exists(subtitle_file) or not os.path.exists(info_file):
-            termcolor.cprint("Subtitle file or Info files do not exist. {}".format(video_file), color="red" )
+            termcolor.cprint("Subtitle file or Info files do not exist. {}".format(video_file), color="red")
             raise Exception("Subtitle file or Info files do not exist.")
 
         #Download google subtitle to cross check with closed captions
@@ -52,7 +52,6 @@ if __name__ == "__main__":
         #youtube_link = metadata['webpage_url']
         print("Parsing subtitle")
         subtitles = load_all_subtitles(subtitle_file)
-        print(len(subtitles))
         input = {
             'subtitles': subtitles,
             'video_file': video_file
