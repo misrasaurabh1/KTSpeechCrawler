@@ -30,6 +30,24 @@ pipeline = Pipeline([
     CaptionDurationFilter(min_length=1, max_length=20.0)
 ])
 
+def filter_subtitles(subtitle_path):
+    if not os.path.exists(subtitle_path):
+        termcolor.cprint("Subtitle file does not exist. {}".format(subtitle_path), color="red")
+        raise Exception("Subtitle file does not exist. {}".format(subtitle_path))
+
+    subtitles = load_all_subtitles(subtitle_path)
+    input = {
+        'subtitles': subtitles,
+        'video_file': ""
+    }
+    termcolor.cprint("Got {} candidates".format(len(subtitles)), color="yellow")
+
+    filtered_input = pipeline(input)
+    filtered_subtitles = filtered_input["subtitles"]
+
+    termcolor.cprint("Writing {} samples".format(len(filtered_subtitles)), color="cyan")
+
+    return filtered_subtitles
 
 if __name__ == "__main__":
     video_file = sys.argv[1]
@@ -39,6 +57,9 @@ if __name__ == "__main__":
     info_file = video_file.replace('.mp4', '.info.json')
     overall_info = {"sub_file": subtitle_file, "info": info_file}
     log_file = open("./log.json", "a+")
+
+
+
 
     result = RESULT.OK
     try:
