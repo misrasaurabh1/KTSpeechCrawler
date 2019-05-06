@@ -29,8 +29,15 @@ pipeline = Pipeline([
     SubtitleMerger(max_len_merged_sec=10),
     CaptionDurationFilter(min_length=1, max_length=20.0)
 ])
+big_pipeline = Pipeline([
+    SubtitleCaptionTextFilter(),
+    CaptionNormalizer(),
+    #CaptionRegexMatcher(good_chars_regexp),
+    CaptionLeaveOnlyAlphaNumCharacters(),
+    SubtitleMerger(max_len_merged_sec=99999999, min_gap_to_split_sec=99999999),
+    ])
 
-def filter_subtitles(subtitle_path):
+def filter_subtitles(subtitle_path, big_utt=False):
     if not os.path.exists(subtitle_path):
         termcolor.cprint("Subtitle file does not exist. {}".format(subtitle_path), color="red")
         raise Exception("Subtitle file does not exist. {}".format(subtitle_path))
@@ -41,8 +48,10 @@ def filter_subtitles(subtitle_path):
         'video_file': ""
     }
     termcolor.cprint("Got {} candidates".format(len(subtitles)), color="yellow")
-
-    filtered_input = pipeline(input)
+    if big_utt:
+        filtered_input = big_pipeline(input)
+    else:
+        filtered_input = pipeline(input)
     filtered_subtitles = filtered_input["subtitles"]
 
     termcolor.cprint("Writing {} samples".format(len(filtered_subtitles)), color="cyan")

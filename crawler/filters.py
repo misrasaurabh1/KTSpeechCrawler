@@ -33,7 +33,7 @@ class OverlappingSubtitlesRemover(BaseFilter):
 
     def __call__(self, input):
         subtitles = input['subtitles']
-        input['subtitles'] =  remove_overlapping_subtitles(subtitles)
+        input['subtitles'] = remove_overlapping_subtitles(subtitles)
         return input
 
 
@@ -87,14 +87,17 @@ class CaptionRegexMatcher(BaseFilter):
 
     def __call__(self, input):
         subtitles = input['subtitles']
-        input['subtitles'] = list(filter(lambda s: re.match(self.regexp, s['original_phrase']) is not None, subtitles))
+        len_sub = len(subtitles)
+        input['subtitles'] = list(filter(lambda s: re.match(self.regexp, s['original_phrase']) is not None or s['original_phrase'] == '', subtitles))
+        if len(input['subtitles']) < len_sub:
+            print("Threw {} utterances for {}".format(len_sub - len(input['subtitles']), input['subtitles'][0]['sub_file']))
         return input
 
 
 class CaptionNormalizer(BaseFilter):
     def __call__(self, input):
         for sub_info in input['subtitles']:
-            sub_info['original_phrase'] =  normalize_subtitle(sub_info["original_phrase"])
+            sub_info['original_phrase'] = normalize_subtitle(sub_info["original_phrase"])
         return input
 
 class CaptionLengthFilter(BaseFilter):

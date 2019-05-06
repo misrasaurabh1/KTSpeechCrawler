@@ -19,10 +19,63 @@ from Levenshtein import *
 from tqdm import tqdm
 
 everything_cool = re.compile(r"^[A-Za-z0-9\,\.\-\?\"\'\’\!\“\s\;\:\“\”\–\‘\’\’\/\\]+$", re.IGNORECASE)
-leave_chars = re.compile(r"[^a-z\s\']", re.IGNORECASE)
+leave_chars = re.compile(r"[^a-z\s\'\-]", re.IGNORECASE)
 # numbers are ignored
 html_tags = re.compile(r'<.*?>')
-
+greek_alphabet = {
+    u'\u0391': ' Alpha ',
+    u'\u0392': ' Beta ',
+    u'\u00DF': ' Beta ',
+    u'\u0393': ' Gamma ',
+    u'\u0394': ' Delta ',
+    u'\u2206': ' Delta ',
+    u'\u0395': ' Epsilon ',
+    u'\u0396': ' Zeta ',
+    u'\u0397': ' Eta ',
+    u'\u0398': ' Theta ',
+    u'\u0399': ' Iota ',
+    u'\u039A': ' Kappa ',
+    u'\u039B': ' Lamda ',
+    u'\u039C': ' Mu ',
+    u'\u039D': ' Nu ',
+    u'\u039E': ' Xi ',
+    u'\u039F': ' Omicron ',
+    u'\u03A0': ' Pi ',
+    u'\u03A1': ' Rho ',
+    u'\u03A3': ' Sigma ',
+    u'\u03A4': ' Tau ',
+    u'\u03A5': ' Upsilon ',
+    u'\u03A6': ' Phi ',
+    u'\u03C6': ' Phi ',
+    u'\u03B4': ' Delta ',
+    u'\u03A7': ' Chi ',
+    u'\u03A8': ' Psi ',
+    u'\u03A9': ' Omega ',
+    u'\u03B1': ' alpha ',
+    u'\u03B2': ' beta ',
+    u'\u03B3': ' gamma ',
+    u'\u03B4': ' delta ',
+    u'\u03B5': ' epsilon ',
+    u'\u03B6': ' zeta ',
+    u'\u03B7': ' eta ',
+    u'\u03B8': ' theta ',
+    u'\u03B9': ' iota ',
+    u'\u03BA': ' kappa ',
+    u'\u03BB': ' lamda ',
+    u'\u03BC': ' mu ',
+    u'\u03BD': ' nu ',
+    u'\u03BE': ' xi ',
+    u'\u03BF': ' omicron ',
+    u'\u03C0': ' pi ',
+    u'\u03C1': ' rho ',
+    u'\u03C3': ' sigma ',
+    u'\u03C4': ' tau ',
+    u'\u03C5': ' upsilon ',
+    u'\u03C6': ' phi ',
+    u'\u03C7': ' chi ',
+    u'\u03C8': ' psi ',
+    u'\u03C9': ' omega ',
+}
 
 def striphtml(data):
     return html_tags.sub(' ', data)
@@ -115,7 +168,7 @@ def merge_subtitles(subs, min_dist=1.5, max_dist=6.0):
             distance_sec = distance.total_seconds()
             assert distance_sec >= 0.0
             merged_dist = timedelta_dt(prev_s["ts_start"], s["ts_end"], )
-            if distance_sec < min_dist and merged_dist.total_seconds() < max_dist:
+            if distance_sec <= min_dist and merged_dist.total_seconds() < max_dist:
                 # merge
                 new_s = copy.deepcopy(prev_s)
                 new_s["ts_end"] = s["ts_end"]
@@ -210,11 +263,19 @@ def normalize_numbers(input_str):
 def normalize_subtitle(input_str):
     input_str = ' ' + input_str + ' '
     input_str = input_str.replace(',', ' ').replace('.', ' ')
-    input_str = re.sub(r"([a-z])\-([a-z])", r"\1\2", input_str, 0, re.IGNORECASE)
+    #input_str = re.sub(r"([a-z])\-([a-z])", r"\1\2", input_str, 0, re.IGNORECASE)
     input_str = input_str.replace("- ", " ")
     input_str = input_str.replace("— ", " ")
+    input_str = input_str.replace("=", " equal to")
+    input_str = input_str.replace("+", " plus ")
+    input_str = input_str.replace("*", " ")
+    input_str = input_str.replace("/", " by ")  # Assuming the division character
+    input_str = input_str.replace("$", " dollar ")  # Assuming the dollar sign
     input_str = input_str.replace('’', '\'').replace('‘', '\'').replace('ʻ', '\'').replace('´', '\'').replace("&nbsp;",
                                                                                                               ' ')
+    input_str = input_str.replace("&lt;", " less than ").replace("&gt;", " greater than ").replace("&amp;", " and ")
+    for uni in greek_alphabet.keys():
+        input_str = input_str.replace(uni, greek_alphabet[uni])
     # substitute speaker info
     input_str = re.sub('<[^<]+?>', ' ', input_str)
     input_str = re.sub(r"[A-Z]\w+\:", " ", input_str)
